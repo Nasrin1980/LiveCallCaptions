@@ -7,7 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Java 17
@@ -33,3 +33,15 @@ jobs:
           name: Beni-LiveCallCaptions-debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publish public direct-download APK (test release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="beni-v0.3-install-test"
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK#Beni-v0.3-install-test.apk" --clobber
+          else
+            gh release create "$TAG" "$APK#Beni-v0.3-install-test.apk" --target "$GITHUB_SHA" --title "Beni v0.3 – Android install test" --notes "Experimental beta. Speech capture during SIM calls may not work. This release is not Play Protect verified." --prerelease
+          fi
