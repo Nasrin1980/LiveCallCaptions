@@ -38,10 +38,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="beni-v0.3-install-test"
+          TAG="beni-v0.4-accessible"
           APK="app/build/outputs/apk/debug/app-debug.apk"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK#Beni-v0.3-install-test.apk" --clobber
+            gh release upload "$TAG" "$APK#Beni-Accessible-Call-v0.4.apk" --clobber
           else
-            gh release create "$TAG" "$APK#Beni-v0.3-install-test.apk" --target "$GITHUB_SHA" --title "Beni v0.3 – Android install test" --notes "Experimental beta. Speech capture during SIM calls may not work. This release is not Play Protect verified." --prerelease
+            gh release create "$TAG" "$APK#Beni-v0.3-install-test.apk" --target "$GITHUB_SHA" --title "Beni Accessible Call v0.4 – speech captions and typed replies" --notes "Experimental accessible conversation demo: speech-to-text, English/Persian translation, typed reply translated and spoken aloud via device speaker. Does not intercept SIM audio or inject TTS into SIM calls." --prerelease
           fi

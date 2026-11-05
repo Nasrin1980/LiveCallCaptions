@@ -69,6 +69,14 @@ public class CaptionService extends Service {
         Button close=new Button(this);
         close.setText("×");
         bar.addView(close);
+        Button replyButton=new Button(this);
+        replyButton.setText("Reply");
+        bar.addView(replyButton);
+        replyButton.setOnClickListener(v->{
+            Intent open=new Intent(this,AccessibleActivity.class);
+            open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            try{startActivity(open);}catch(Exception e){setText("Open Beni from your app list to type a reply.");}
+        });
         box.addView(bar);
         text=new TextView(this);
         text.setTextColor(Color.WHITE);
@@ -131,11 +139,22 @@ public class CaptionService extends Service {
         String original=items.get(0);
         int request=revision.incrementAndGet();
         setText("Original: "+original+"\nTranslating...");
+        sendCaption(original,"در حال ترجمه...");
         if(translator!=null)translator.translate(original).addOnSuccessListener(result->{
-            if(!stopped && request==revision.get())setText("Original: "+original+"\nTranslation: "+result);
+            if(!stopped && request==revision.get()){
+                setText("Original: "+original+"\nTranslation: "+result);
+                sendCaption(original,result);
+            }
         }).addOnFailureListener(e->setText("Original: "+original+"\nTranslation error: "+e.getMessage()));
     }
     private void restart(){handler.postDelayed(()->{if(!stopped && speech!=null){try{speech.startListening(speechIntent);}catch(Exception e){setText("Restart error: "+e.getMessage());}}},700);}
+    private void sendCaption(String original,String translation){
+        Intent update=new Intent("com.beni.livecallcaptions.CAPTION_UPDATE");
+        update.setPackage(getPackageName());
+        update.putExtra("original",original);
+        update.putExtra("translation",translation);
+        sendBroadcast(update);
+    }
     private void setText(String value){handler.post(()->{if(text!=null)text.setText(value);});}
     @Override public void onDestroy(){
         stopped=true;revision.incrementAndGet();handler.removeCallbacksAndMessages(null);
