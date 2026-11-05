@@ -14,6 +14,7 @@ import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
     private Spinner direction;
+    private CheckBox speakerMode;
     private EditText phone;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -48,6 +50,14 @@ public class MainActivity extends Activity {
         ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,options);
         direction.setAdapter(adapter);
         root.addView(direction);
+        speakerMode=new CheckBox(this);
+        speakerMode.setText("Speakerphone listening test (experimental)");
+        speakerMode.setChecked(true);
+        root.addView(speakerMode);
+        TextView speakerHint=new TextView(this);
+        speakerHint.setText("During the call, tap SPEAKER in your phone's call screen.\nBeni cannot turn on the cellular speaker itself. Android may still prevent the microphone from capturing the other caller.");
+        speakerHint.setTextSize(15);
+        root.addView(speakerHint);
         Button overlay=new Button(this);
         overlay.setText("1. Allow floating caption window");
         root.addView(overlay);
@@ -70,7 +80,7 @@ public class MainActivity extends Activity {
         phone.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
         root.addView(phone);
         Button dial=new Button(this);
-        dial.setText("3. Open SIM dialer");
+        dial.setText("3. Open SIM dialer (then tap SPEAKER)");
         root.addView(dial);
         dial.setOnClickListener(v->{
             Intent intent=new Intent(Intent.ACTION_DIAL,Uri.fromParts("tel",phone.getText().toString(),""));
@@ -90,6 +100,7 @@ public class MainActivity extends Activity {
         }
         Intent i=new Intent(this,CaptionService.class);
         i.putExtra("direction",direction.getSelectedItemPosition());
+        i.putExtra("speakerMode",speakerMode.isChecked());
         if(Build.VERSION.SDK_INT>=26) startForegroundService(i); else startService(i);
     }
     @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grants){

@@ -21,12 +21,14 @@ public class CaptionService extends Service {
     private Translator translator;
     private boolean listening=false, stopped=false;
     private int direction;
+    private boolean speakerMode=false;
     private final Handler handler=new Handler(Looper.getMainLooper());
     private final AtomicInteger revision=new AtomicInteger();
     private Intent speechIntent;
     @Override public void onCreate(){super.onCreate();wm=(WindowManager)getSystemService(WINDOW_SERVICE);}
     @Override public int onStartCommand(Intent intent,int flags,int startId){
         direction=intent==null?0:intent.getIntExtra("direction",0);
+        speakerMode=intent!=null && intent.getBooleanExtra("speakerMode",false);
         stopped=false;
         createNotification();
         showFloat();
@@ -73,6 +75,13 @@ public class CaptionService extends Service {
         text.setTextSize(16);
         text.setText("Starting...");
         box.addView(text);
+        if(speakerMode){
+            TextView hint=new TextView(this);
+            hint.setText("\nSPEAKER TEST: switch on speakerphone inside Phone app. Audio access may still be blocked by Android.");
+            hint.setTextColor(0xFFFFD580);
+            hint.setTextSize(13);
+            box.addView(hint);
+        }
         int type=Build.VERSION.SDK_INT>=26?WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY:WindowManager.LayoutParams.TYPE_PHONE;
         WindowManager.LayoutParams params=new WindowManager.LayoutParams(
             Math.min(getResources().getDisplayMetrics().widthPixels-32,900),
@@ -108,7 +117,7 @@ public class CaptionService extends Service {
             public void onRmsChanged(float v){}
             public void onBufferReceived(byte[] b){}
             public void onEndOfSpeech(){}
-            public void onError(int err){listening=false;if(!stopped){setText("Listening... (speech code "+err+")");restart();}}
+            public void onError(int err){listening=false;if(!stopped){setText("Listening unavailable or interrupted (code "+err+"). If on a SIM call, Android may block the mic.");restart();}}
             public void onResults(Bundle b){parse(b);listening=false;restart();}
             public void onPartialResults(Bundle b){parse(b);}
             public void onEvent(int t,Bundle b){}
